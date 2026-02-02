@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Button Tracker</title>
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background-color: #111; /* Dark background */
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    sans-serif;
+                overflow: hidden;
+            }
+
+            /* The Button Styling */
+            #the-button {
+                width: 200px;
+                height: 200px;
+                border-radius: 50%; /* Makes it round */
+                border: none;
+                cursor: pointer;
+                font-size: 1.2rem;
+                font-weight: bold;
+                letter-spacing: 2px;
+                color: white;
+                text-transform: uppercase;
+
+                /* Fancy Gradient & Shadows */
+                background: linear-gradient(145deg, #ff4b1f, #ff9068);
+                box-shadow:
+                    0 0 30px rgba(255, 75, 31, 0.4),
+                    inset 0 0 20px rgba(255, 255, 255, 0.1);
+
+                transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                position: relative;
+                z-index: 10;
+            }
+
+            /* Hover Effect */
+            #the-button:hover {
+                transform: scale(1.05);
+                box-shadow:
+                    0 0 50px rgba(255, 75, 31, 0.6),
+                    inset 0 0 20px rgba(255, 255, 255, 0.2);
+            }
+
+            /* Active (Click) Effect */
+            #the-button:active {
+                transform: scale(0.95);
+                background: linear-gradient(145deg, #e43a15, #ff7b50);
+            }
+
+            /* Success State (triggered by JS) */
+            #the-button.success {
+                background: linear-gradient(145deg, #11998e, #38ef7d);
+                box-shadow: 0 0 50px rgba(56, 239, 125, 0.6);
+                content: "SAVED";
+            }
+
+            /* A faint background glow behind everything */
+            .glow-bg {
+                position: absolute;
+                width: 400px;
+                height: 400px;
+                background: radial-gradient(
+                    circle,
+                    rgba(255, 75, 31, 0.1) 0%,
+                    rgba(0, 0, 0, 0) 70%
+                );
+                border-radius: 50%;
+                z-index: 0;
+                pointer-events: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="glow-bg"></div>
+        <button id="the-button">PRESS ME</button>
+
+        <script>
+            const btn = document.getElementById("the-button");
+
+            function getId() {
+                const path = window.location.pathname.replace(/^\/+/, "");
+                return path.length > 0 ? path : "0";
+            }
+
+            btn.addEventListener("click", async () => {
+                const id = getId();
+
+                // Visual Feedback
+                const originalText = btn.innerText;
+                btn.innerText = "...";
+
+                try {
+                    // CALL YOUR OWN API (Relative path)
+                    const response = await fetch(`/api/save?id=${id}`);
+
+                    if (response.ok) {
+                        btn.classList.add("success");
+                        btn.innerText = "SAVED";
+                        setTimeout(() => {
+                            btn.classList.remove("success");
+                            btn.innerText = originalText;
+                        }, 1500);
+                    } else {
+                        btn.innerText = originalText;
+                    }
+                } catch (error) {
+                    console.error(error);
+                    btn.innerText = originalText;
+                }
+            });
+        </script>
+    </body>
+</html>
