@@ -82,26 +82,63 @@
     </head>
     <body>
         <div class="glow-bg"></div>
-        <button id="the-button">PRESS ME</button>
+        <button id="the-button">PISS (ON) ME</button>
 
         <script>
             const btn = document.getElementById("the-button");
 
-            function getId() {
-                const path = window.location.pathname.replace(/^\/+/, "");
-                return path.length > 0 ? path : "0";
+            // Helper: Cookie Management
+            function setCookie(name, value, days) {
+                const d = new Date();
+                d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+                let expires = "expires=" + d.toUTCString();
+                document.cookie =
+                    name + "=" + value + ";" + expires + ";path=/";
             }
 
-            btn.addEventListener("click", async () => {
-                const id = getId();
+            function getCookie(name) {
+                let nameEQ = name + "=";
+                let ca = document.cookie.split(";");
+                for (let i = 0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) == " ") c = c.substring(1, c.length);
+                    if (c.indexOf(nameEQ) == 0)
+                        return c.substring(nameEQ.length, c.length);
+                }
+                return null;
+            }
 
+            // 1. Extract ID from URL
+            function getId() {
+                // Try to get from URL
+                const path = window.location.pathname.replace(/^\/+/, "");
+                if (path.length > 0) return path;
+
+                // If URL is empty/root, try to get from Cookie
+                const storedId = getCookie("user_id");
+                if (storedId) return storedId;
+
+                return "0"; // Default
+            }
+
+            // Initialize
+            const currentId = getId();
+            // Update URL UI if we loaded from cookie but URL was empty (optional)
+            if (window.location.pathname === "/" && currentId !== "0") {
+                history.replaceState(null, "", "/" + currentId);
+            }
+            // Save to cookie
+            setCookie("user_id", currentId, 365);
+
+            // 2. Handle Click
+            btn.addEventListener("click", async () => {
                 // Visual Feedback
                 const originalText = btn.innerText;
                 btn.innerText = "...";
 
                 try {
-                    // CALL YOUR OWN API (Relative path)
-                    const response = await fetch(`/api/save?id=${id}`);
+                    // Using the /api/save logic from previous step
+                    const response = await fetch(`/api/save?id=${currentId}`);
 
                     if (response.ok) {
                         btn.classList.add("success");
@@ -118,6 +155,18 @@
                     btn.innerText = originalText;
                 }
             });
+
+            // Add a link to the stats page
+            const statsLink = document.createElement("a");
+            statsLink.href = "/stats";
+            statsLink.innerText = "VIEW STATS";
+            statsLink.style.position = "absolute";
+            statsLink.style.bottom = "20px";
+            statsLink.style.color = "rgba(255,255,255,0.5)";
+            statsLink.style.textDecoration = "none";
+            statsLink.style.fontFamily = "sans-serif";
+            statsLink.style.fontSize = "0.8rem";
+            document.body.appendChild(statsLink);
         </script>
     </body>
 </html>
