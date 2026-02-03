@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>About - Fluid Stats</title>
+        <style>
+            :root {
+                --bg: #111;
+                --card-bg: #1a1a1a;
+                --text: #eee;
+                --accent: #ff4b1f;
+                --accent-grad: linear-gradient(145deg, #ff4b1f, #ff9068);
+            }
+
+            body {
+                margin: 0;
+                padding: 0;
+                background-color: var(--bg);
+                color: var(--text);
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    sans-serif;
+                line-height: 1.6;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            /* Ambient Glow Background */
+            .glow-bg {
+                position: fixed;
+                top: -200px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 600px;
+                height: 600px;
+                background: radial-gradient(
+                    circle,
+                    rgba(255, 75, 31, 0.15) 0%,
+                    rgba(0, 0, 0, 0) 70%
+                );
+                border-radius: 50%;
+                z-index: -1;
+                pointer-events: none;
+            }
+
+            .container {
+                max-width: 800px;
+                width: 90%;
+                padding: 40px 20px;
+            }
+
+            /* Header */
+            header {
+                text-align: center;
+                margin-bottom: 50px;
+            }
+
+            h1 {
+                font-size: 3rem;
+                margin-bottom: 10px;
+                font-weight: 800;
+                letter-spacing: -1px;
+                background: var(--accent-grad);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+
+            .subtitle {
+                font-size: 1.2rem;
+                color: #888;
+                font-weight: 300;
+            }
+
+            .subtitle > b {
+                font-weight: 600;
+            }
+
+            /* Buttons */
+            .btn-group {
+                display: flex;
+                gap: 15px;
+                justify-content: center;
+                margin-top: 25px;
+            }
+
+            .btn {
+                padding: 10px 20px;
+                border-radius: 30px;
+                text-decoration: none;
+                font-weight: bold;
+                font-size: 0.9rem;
+                transition: 0.2s;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .btn-primary {
+                background: var(--text);
+                color: var(--bg);
+                border: 1px solid var(--text);
+            }
+            .btn-primary:hover {
+                background: #ccc;
+            }
+
+            .btn-outline {
+                background: transparent;
+                color: #888;
+                border: 1px solid #333;
+            }
+            .btn-outline:hover {
+                border-color: #666;
+                color: var(--text);
+            }
+
+            /* Content Sections */
+            .section {
+                background: var(--card-bg);
+                padding: 30px;
+                border-radius: 20px;
+                border: 1px solid #222;
+                margin-bottom: 30px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            }
+
+            h2 {
+                margin-top: 0;
+                color: var(--accent);
+                font-size: 1.5rem;
+            }
+            p {
+                color: #bbb;
+                margin-bottom: 15px;
+            }
+            p:last-child {
+                margin-bottom: 0;
+            }
+
+            /* FAQ Styling */
+            .faq-item {
+                border-bottom: 1px solid #333;
+                padding: 20px 0;
+            }
+            .faq-item:last-child {
+                border-bottom: none;
+            }
+            .faq-q {
+                font-weight: bold;
+                color: #fff;
+                margin-bottom: 8px;
+                display: block;
+            }
+            .faq-a {
+                color: #999;
+                font-size: 0.95rem;
+            }
+
+            /* Footer */
+            footer {
+                margin-top: auto;
+                padding: 40px;
+                color: #444;
+                font-size: 0.8rem;
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="glow-bg"></div>
+
+        <div class="container">
+            <header>
+                <h1>P.I.S.S.</h1>
+                <div class="subtitle">
+                    <b>P</b>rofusely <b>I</b>mportant <b>S</b>erious <b>S</b>urvey
+                </div>
+
+                <div class="btn-group">
+                    <a href="/" class="btn btn-primary">Go to Pissing</a>
+                    <a href="/stats" class="btn btn-outline">View Stats</a>
+                    <a
+                        href="https://github.com/Random-typ/P.I.S.S."
+                        target="_blank"
+                        class="btn btn-outline"
+                    >
+                        <!-- Simple GitHub Icon SVG -->
+                        <svg
+                            height="20"
+                            width="20"
+                            viewBox="0 0 16 16"
+                            fill="currentColor"
+                        >
+                            <path
+                                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+                            />
+                        </svg>
+                        GitHub
+                    </a>
+                </div>
+            </header>
+
+            <div class="section">
+                <h2>About P.I.S.S.</h2>
+                <p>
+                    P.I.S.S. is an empirically grounded, collaborative data
+                    experiment, measuring the Sequencing and Amount of Fluid Put-through in Humans.
+                     The goal is simple: Visualize Findings, in the Framework of <br>
+                      PCI (Piss Correlation Index)
+                      and instigate further Study in the Field of Urine Research.
+                </p>
+                <p>
+                    Our Team of Experts, brought together by shared biological constraints,
+                    has been hard at Work, bringing P.I.S.S to Life. The Project had its Inception in 2020
+                     ,amidst the "Heimscheißer"-Epidemic, first Prototypes of P.I.S.S failed to provide
+                      conclusive Data. The current Version on the other Hand has already
+                      proven successful enough for a public Release. Communal Pissing is heavily encouraged!  
+                </p>
+            </div>
+
+            <div class="section">
+                <h2>Frequently Asked Questions</h2>
+
+                <div class="faq-item">
+                    <span class="faq-q">Could this Research cure Cancer?</span>
+                    <span class="faq-a"
+                        >A connection between, urinal tides and cancer, had first been conceived of by
+                        Da Vinci. The absence of concrete Proof suggest
+                        a need for further Investigation, which we'll humbly oblige to. <br>
+                        So in short: Yes.</span
+                    >
+                </div>
+
+                <div class="faq-item">
+                    <span class="faq-q"
+                        >Is this Research sponsored by Nestlé?</span
+                    >
+                    <span class="faq-a"
+                        >Although Nestlé has huge Stakes in the Water-Exploitation Industry.
+                        We never have and also never will work with Nestlé. </span
+                    >
+                </div>
+
+                <div class="faq-item">
+                    <span class="faq-q"
+                        >Why would you want to water Football Fields with Urine?</span
+                    >
+                    <span class="faq-a"
+                        >Urine is composed of 91 to 96 percent water. During droughts Football Fields could be 
+                        watered with Piss to save on Drinking Water Supplies. Clothespins against potentially occurring 
+                        strain on Viewers Sense of Smell are widely available, so it should not be an Issue.</span
+                    >
+                </div>
+            </div>
+
+            <footer>Built with vanilla JS, Vercel, and Upstash.</footer>
+        </div>
+    </body>
+</html>

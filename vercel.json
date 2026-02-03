@@ -5,6 +5,10 @@
             "destination": "/stats.html"
         },
         {
+            "source": "/about",
+            "destination": "/about.html"
+        },
+        {
             "source": "/api/(.*)",
             "destination": "/api/$1"
         },

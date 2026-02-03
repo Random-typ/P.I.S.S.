@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Fluid Stats</title>
+        <title>P.I.S.S. Stats</title>
         <!-- Chart.js for Graphs -->
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
@@ -33,19 +33,26 @@
                 justify-content: space-between;
                 align-items: center;
                 margin-bottom: 30px;
+                flex-wrap: wrap;
+                gap: 15px;
             }
-            .back-btn {
+            .nav-links {
+                display: flex;
+                gap: 10px;
+            }
+            .btn {
                 background: var(--card-bg);
                 color: white;
                 border: 1px solid #333;
-                padding: 10px 20px;
+                padding: 8px 16px;
                 border-radius: 30px;
                 cursor: pointer;
                 text-decoration: none;
+                font-size: 0.9rem;
                 font-weight: bold;
                 transition: 0.2s;
             }
-            .back-btn:hover {
+            .btn:hover {
                 background: #333;
             }
 
@@ -100,11 +107,14 @@
             }
 
             /* Heatmap Grid */
+            .heatmap-container {
+                overflow-x: auto; /* Safety scroll */
+            }
             .heatmap {
                 display: grid;
-                grid-template-columns: 30px repeat(24, 1fr);
                 gap: 2px;
                 font-size: 0.7rem;
+                min-width: 300px; /* Ensure it doesn't crush too small */
             }
             .hm-cell {
                 aspect-ratio: 1;
@@ -116,6 +126,7 @@
                 padding-right: 5px;
                 color: #555;
                 align-self: center;
+                font-size: 0.6rem;
             }
 
             /* Loading Overlay */
@@ -158,19 +169,22 @@
         </div>
 
         <div class="nav" style="max-width: 1200px; margin: 0 auto 30px auto">
-            <a href="#" id="back-link" class="back-btn">← Back to Pissing</a>
-            <h2 style="margin: 0">PCI Dashboard</h2>
+            <h2 style="margin: 0">P.I.S.S. Dashboard</h2>
+            <div class="nav-links">
+                <a href="#" id="back-link" class="btn">← Back to Pissing</a>
+                <a href="/about" class="btn">About</a>
+            </div>
         </div>
 
         <div class="container">
             <!-- 1. Basic Stats All Time -->
             <div class="card">
-                <h3>All Time Pisses</h3>
+                <h3>All Time Entries</h3>
                 <div class="big-stat" id="stat-total">0</div>
                 <div class="sub-stat" id="stat-liters">0 Liters</div>
                 <div class="sub-stat" id="stat-tubs">0 Bathtubs</div>
                 <div class="sub-stat" id="stat-fields">
-                    0 Football Fields (1mm deep)
+                    0 Football Fields (1mm)
                 </div>
             </div>
 
@@ -180,7 +194,7 @@
                 <div class="big-stat" id="stat-24-total">0</div>
                 <div class="sub-stat" id="stat-24-liters">0 Liters</div>
                 <div class="sub-stat" id="stat-24-tubs">0 Bathtubs</div>
-                <div class="sub-stat" id="stat-24-fields">0 Football Fields</div>
+                <div class="sub-stat" id="stat-24-fields">0 Fields</div>
             </div>
 
             <!-- 6. Gauge (Last 10m) -->
@@ -203,7 +217,7 @@
                             >0</span
                         ><br />
                         <span style="font-size: 0.8rem; color: #666"
-                            >Liters pissed</span
+                            >Liters Pissed</span
                         >
                     </div>
                 </div>
@@ -260,31 +274,33 @@
 
             <!-- 5. Heatmap -->
             <div class="card full-width">
-                <h3>Weekly Heatmap (UTC)</h3>
+                <h3>Weekly Heatmap</h3>
+                <div class="heatmap-container">
+                    <div class="heatmap" id="heatmap-grid">
+                        <!-- JS will fill this -->
+                    </div>
+                </div>
                 <div
+                    id="hm-legend"
                     style="
                         display: flex;
                         justify-content: space-between;
-                        margin-bottom: 5px;
+                        margin-top: 5px;
                         padding-left: 30px;
                         font-size: 0.7rem;
                         color: #666;
                     "
                 >
-                    <span>00:00</span><span>06:00</span><span>12:00</span
-                    ><span>18:00</span><span>23:00</span>
-                </div>
-                <div class="heatmap" id="heatmap-grid">
-                    <!-- JS will fill this -->
+                    <!-- JS fills time labels -->
                 </div>
             </div>
 
             <!-- 8. Pie Chart -->
             <div
                 class="card full-width"
-                style="height: 400px; display: flex; flex-direction: column"
+                style="height: 450px; display: flex; flex-direction: column"
             >
-                <h3>Top Contributors (IDs)</h3>
+                <h3>Top Contributors</h3>
                 <div style="flex-grow: 1; position: relative">
                     <canvas id="pieChart"></canvas>
                 </div>
@@ -301,9 +317,9 @@
             // Constants
             const LITER_PER_ENTRY = 0.3;
             const BATHTUB_L = 150;
-            const FIELD_MM_L = 7140; // 1mm of water on standard pitch
+            const FIELD_MM_L = 7140;
 
-            // Cookie Helper to handle Back Button
+            // Setup Back Button
             function getCookie(name) {
                 let nameEQ = name + "=";
                 let ca = document.cookie.split(";");
@@ -315,35 +331,33 @@
                 }
                 return null;
             }
-
-            // Setup Back Button
             const userId = getCookie("user_id") || "0";
             document.getElementById("back-link").href =
                 "/" + (userId === "0" ? "" : userId);
 
             // Fetch Data
             async function fetchData() {
-                // Get ALL items (Warning: Heavy if db is huge)
-                const res = await fetch(
-                    `${UPSTASH_READ_URL}/lrange/${DB_KEY}/0/-1`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${UPSTASH_READ_TOKEN}`,
+                try {
+                    const res = await fetch(
+                        `${UPSTASH_READ_URL}/lrange/${DB_KEY}/0/-1`,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${UPSTASH_READ_TOKEN}`,
+                            },
                         },
-                    },
-                );
-                const json = await res.json();
+                    );
+                    const json = await res.json();
 
-                // Result is { result: [ "stringified_json", "stringified_json" ] }
-                // We need to parse every item
-                const data = json.result.map((item) => JSON.parse(item));
-
-                // Sort by date (oldest first) just in case
-                data.sort(
-                    (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
-                );
-
-                return data;
+                    const data = json.result.map((item) => JSON.parse(item));
+                    data.sort(
+                        (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
+                    );
+                    return data;
+                } catch (e) {
+                    console.error(e);
+                    alert("Could not load data.");
+                    return [];
+                }
             }
 
             function processData(data) {
@@ -362,28 +376,35 @@
                     (d) => now - new Date(d.timestamp) < 10 * 60 * 1000,
                 );
 
-                // --- 1. Basic Stats ---
+                // 1. Basic Stats
                 updateBasicStats("stat-", data.length);
                 updateBasicStats("stat-24-", last24h.length);
 
-                // --- 6. Gauge ---
+                // 6. Gauge
                 const liters10m = last10m.length * LITER_PER_ENTRY;
                 document.getElementById("gauge-val").innerText =
                     liters10m.toFixed(1);
                 initGauge(liters10m);
 
-                // --- 7. Goal Logic ---
+                // 7. Goal
                 calculateGoal(data);
 
-                // --- 2, 3, 4 Line Graphs ---
-                initLineChart("chart24h", bucketByTime(last24h, 60), "hour"); // Bucket by hour
-                initLineChart("chart7d", bucketByTime(last7d, 24 * 60), "day"); // Bucket by day
-                initLineChart("chartAll", bucketByTime(data, 24 * 60), "day"); // Bucket by day
+                // 2. Line Graph 24h (With Zero Filling)
+                // Bucket by Hour (60 mins), Duration 24 hours
+                const filled24h = fillTimeGaps(last24h, 60, 24);
+                initLineChart("chart24h", filled24h, "hour");
 
-                // --- 5. Heatmap ---
+                // 3. Line Graph 7d (Zero Filling not strictly needed for days but good practice, keeping simple here)
+                // We bucket existing data for days
+                initLineChart("chart7d", bucketByTime(last7d, 24 * 60), "day");
+
+                // 4. All time
+                initLineChart("chartAll", bucketByTime(data, 24 * 60), "day");
+
+                // 5. Heatmap
                 renderHeatmap(data);
 
-                // --- 8. Pie Chart ---
+                // 8. Pie Chart
                 initPieChart(data);
 
                 document.getElementById("loading").style.display = "none";
@@ -396,66 +417,74 @@
                 document.getElementById(`${prefix}liters`).innerText =
                     liters.toLocaleString(undefined, {
                         maximumFractionDigits: 1,
-                    }) + " Liters pissed";
+                    }) + " Liters Pissed";
                 document.getElementById(`${prefix}tubs`).innerText =
-                    (liters / BATHTUB_L).toFixed(2) + " Bathtubs filled";
+                    (liters / BATHTUB_L).toFixed(2) + " Bathtubs Filled";
                 document.getElementById(`${prefix}fields`).innerText =
-                    (liters / FIELD_MM_L).toFixed(4) + " Football Fields watered";
+                    (liters / FIELD_MM_L).toFixed(4) + " Fields Watered";
             }
 
             // --- Logic Helpers ---
 
+            // Simple bucketing for sparse data (Days)
             function bucketByTime(data, minutesInBucket) {
                 const buckets = {};
                 data.forEach((d) => {
                     const date = new Date(d.timestamp);
-                    // Round down to nearest bucket
                     const coeff = 1000 * 60 * minutesInBucket;
                     const rounded = new Date(
                         Math.round(date.getTime() / coeff) * coeff,
                     ).toISOString();
                     buckets[rounded] = (buckets[rounded] || 0) + 1;
                 });
-                return buckets; // { "iso-date": count }
+                return buckets;
+            }
+
+            // Zero-Filling Logic for 24h Graph
+            // Ensures the line drops to zero when no activity occurs
+            function fillTimeGaps(data, intervalMinutes, durationHours) {
+                const bucketData = bucketByTime(data, intervalMinutes);
+                const filledBuckets = {};
+
+                const now = new Date();
+                // Round now down to nearest hour to align with buckets
+                now.setMinutes(0, 0, 0);
+
+                // Iterate backwards from Now
+                for (let i = 0; i <= durationHours; i++) {
+                    const d = new Date(now);
+                    d.setHours(d.getHours() - i);
+                    const iso = d.toISOString();
+
+                    // If data exists, use it. If not, set 0.
+                    filledBuckets[iso] = bucketData[iso] || 0;
+                }
+                return filledBuckets;
             }
 
             function calculateGoal(data) {
                 if (data.length === 0) return;
-
-                // Group volume by day (YYYY-MM-DD)
                 const dailyVol = {};
                 data.forEach((d) => {
                     const day = d.timestamp.split("T")[0];
                     dailyVol[day] = (dailyVol[day] || 0) + LITER_PER_ENTRY;
                 });
 
-                // Start from first day
                 const startStr = data[0].timestamp.split("T")[0];
                 const startDate = new Date(startStr);
                 const today = new Date();
 
-                let currentGoal = 1.0; // Start at 1 Liter
+                let currentGoal = 1.0;
                 let pointer = new Date(startDate);
-                let goalHistory = [];
 
-                // Loop until yesterday to calculate current goal target
                 while (pointer < today) {
                     const dayStr = pointer.toISOString().split("T")[0];
-
-                    // Don't process TODAY in the loop, we stop before today
                     if (dayStr === today.toISOString().split("T")[0]) break;
-
                     const vol = dailyVol[dayStr] || 0;
-
-                    // Logic: If met, increase 10%
-                    if (vol >= currentGoal) {
-                        currentGoal = currentGoal * 1.1;
-                    }
-
+                    if (vol >= currentGoal) currentGoal = currentGoal * 1.1;
                     pointer.setDate(pointer.getDate() + 1);
                 }
 
-                // Now check Today status
                 const todayStr = today.toISOString().split("T")[0];
                 const todayVol = dailyVol[todayStr] || 0;
                 const percent = Math.min((todayVol / currentGoal) * 100, 100);
@@ -474,7 +503,11 @@
 
             function initLineChart(elemId, buckets, unit) {
                 const ctx = document.getElementById(elemId).getContext("2d");
-                const sortedKeys = Object.keys(buckets).sort();
+
+                // Sort keys chronologically
+                const sortedKeys = Object.keys(buckets).sort(
+                    (a, b) => new Date(a) - new Date(b),
+                );
 
                 new Chart(ctx, {
                     type: "line",
@@ -487,7 +520,8 @@
                                 borderColor: "#ff4b1f",
                                 backgroundColor: "rgba(255, 75, 31, 0.2)",
                                 fill: true,
-                                tension: 0.4,
+                                tension: 0.3,
+                                pointRadius: 2,
                             },
                         ],
                     },
@@ -499,7 +533,7 @@
                                 time: { unit: unit },
                                 grid: { color: "#333" },
                             },
-                            y: { grid: { color: "#333" } },
+                            y: { grid: { color: "#333" }, beginAtZero: true },
                         },
                         plugins: { legend: { display: false } },
                     },
@@ -508,9 +542,11 @@
 
             function initPieChart(data) {
                 const counts = {};
+                let total = 0;
                 data.forEach((d) => {
                     const id = d.id || "Anonymous";
                     counts[id] = (counts[id] || 0) + 1;
+                    total++;
                 });
 
                 // Convert to array and sort top 10
@@ -518,10 +554,18 @@
                     .sort((a, b) => b[1] - a[1])
                     .slice(0, 10);
 
+                // Generate Labels with Percentages
+                const labels = sorted.map((item) => {
+                    const id = item[0];
+                    const count = item[1];
+                    const perc = Math.round((count / total) * 100);
+                    return `${id} (${perc}%)`;
+                });
+
                 new Chart(document.getElementById("pieChart"), {
                     type: "doughnut",
                     data: {
-                        labels: sorted.map((i) => i[0]),
+                        labels: labels,
                         datasets: [
                             {
                                 data: sorted.map((i) => i[1]),
@@ -547,7 +591,7 @@
                         plugins: {
                             legend: {
                                 position: "right",
-                                labels: { color: "#aaa" },
+                                labels: { color: "#aaa", font: { size: 11 } },
                             },
                         },
                     },
@@ -555,11 +599,8 @@
             }
 
             function initGauge(val) {
-                // Doughnut chart hacking to look like a gauge
-                // Max value of gauge is dynamic: max(val*1.5, 10)
                 const max = Math.max(val * 1.5, 2);
                 const remaining = max - val;
-
                 new Chart(document.getElementById("gaugeChart"), {
                     type: "doughnut",
                     data: {
@@ -585,17 +626,68 @@
             }
 
             function renderHeatmap(data) {
-                // Grid 7 rows (Mon-Sun), 24 cols (Hours)
+                // Responsive: Check window width
+                const isMobile = window.innerWidth < 768;
+
+                // Mobile: 60 min buckets (24 cols)
+                // Desktop: 30 min buckets (48 cols)
+                const minutesPerSlot = isMobile ? 60 : 30;
+                const slots = isMobile ? 24 : 48;
+
+                // Grid: 7 rows (Days), N slots (Time)
                 const grid = Array(7)
                     .fill(0)
-                    .map(() => Array(24).fill(0));
-                const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+                    .map(() => Array(slots).fill(0));
+
+                // Formatter for EU/Berlin Timezone
+                const berlinFmt = new Intl.DateTimeFormat("en-US", {
+                    timeZone: "Europe/Berlin",
+                    hour: "numeric",
+                    minute: "numeric",
+                    weekday: "short",
+                    hour12: false,
+                });
+
+                // Map standard weekdays to 0(Mon)-6(Sun) index if preferred,
+                // but standard JS GetDay is 0=Sun. Let's stick to 0=Sun for simplicity.
 
                 data.forEach((d) => {
                     const date = new Date(d.timestamp);
-                    const day = date.getUTCDay(); // 0-6
-                    const hour = date.getUTCHours(); // 0-23
-                    grid[day][hour]++;
+
+                    // Get parts in Berlin time
+                    // We parse the formatted string or use parts
+                    const parts = berlinFmt.formatToParts(date);
+                    const h = parseInt(
+                        parts.find((p) => p.type === "hour").value,
+                    );
+                    const m = parseInt(
+                        parts.find((p) => p.type === "minute").value,
+                    );
+                    const dayName = parts.find(
+                        (p) => p.type === "weekday",
+                    ).value;
+
+                    // Convert Day Name to Index (0=Sun, 1=Mon...)
+                    const dayMap = {
+                        Sun: 0,
+                        Mon: 1,
+                        Tue: 2,
+                        Wed: 3,
+                        Thu: 4,
+                        Fri: 5,
+                        Sat: 6,
+                    };
+                    const dayIndex = dayMap[dayName];
+
+                    // Calculate slot index
+                    // e.g. 10:30.
+                    // If 60min slots: index 10.
+                    // If 30min slots: index (10*2) + (30/30) = 21.
+                    const slotIndex = Math.floor((h * 60 + m) / minutesPerSlot);
+
+                    if (slotIndex < slots) {
+                        grid[dayIndex][slotIndex]++;
+                    }
                 });
 
                 // Find max for color scaling
@@ -603,8 +695,14 @@
                 grid.flat().forEach((v) => (max = Math.max(max, v)));
 
                 const container = document.getElementById("heatmap-grid");
+                container.innerHTML = ""; // Clear existing
 
-                // Generate HTML
+                // Set dynamic grid columns in CSS via style
+                // +1 for the label column
+                container.style.gridTemplateColumns = `30px repeat(${slots}, 1fr)`;
+
+                const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
                 days.forEach((dayName, dIndex) => {
                     // Row Label
                     const label = document.createElement("div");
@@ -613,13 +711,17 @@
                     container.appendChild(label);
 
                     // Cells
-                    for (let h = 0; h < 24; h++) {
-                        const count = grid[dIndex][h];
+                    for (let s = 0; s < slots; s++) {
+                        const count = grid[dIndex][s];
                         const cell = document.createElement("div");
                         cell.className = "hm-cell";
-                        cell.title = `${dayName} ${h}:00 - ${count} entries`;
 
-                        // Color intensity
+                        // Tooltip text
+                        const hourVal = Math.floor((s * minutesPerSlot) / 60);
+                        const minVal = (s * minutesPerSlot) % 60;
+                        const timeStr = `${hourVal.toString().padStart(2, "0")}:${minVal.toString().padStart(2, "0")}`;
+                        cell.title = `${dayName} ${timeStr} - ${count}`;
+
                         const alpha = max > 0 ? count / max : 0;
                         if (count > 0) {
                             cell.style.background = `rgba(255, 75, 31, ${Math.max(alpha, 0.2)})`;
@@ -627,16 +729,24 @@
                         container.appendChild(cell);
                     }
                 });
+
+                // Render Time Labels below
+                const legend = document.getElementById("hm-legend");
+                legend.innerHTML = "";
+                const labelsToShow = isMobile
+                    ? ["00:00", "06:00", "12:00", "18:00", "23:00"]
+                    : ["00:00", "06:00", "12:00", "18:00", "23:00"];
+
+                // Just basic space-between
+                labelsToShow.forEach((l) => {
+                    const span = document.createElement("span");
+                    span.innerText = l;
+                    legend.appendChild(span);
+                });
             }
 
             // Start
-            fetchData()
-                .then((data) => processData(data))
-                .catch((e) => {
-                    console.error(e);
-                    document.getElementById("loading").innerHTML =
-                        "<p>Error loading data. Check console.</p>";
-                });
+            fetchData().then((data) => processData(data));
         </script>
     </body>
 </html>
