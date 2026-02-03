@@ -118,7 +118,7 @@
                 const storedId = getCookie("user_id");
                 if (storedId) return storedId;
 
-                return "0"; // Default
+                return Math.random().toString(36).slice(2, 2 + length); // Default
             }
 
             // Initialize
